@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Rethink Sans", sans-serif;
+
+  /* Adminex Design Tokens */
+  --color-primary: #4680FF;
+  --color-primary-hover: #3366ee;
+  --color-primary-light: #E8EEFF;
+  --color-page-bg: #F5F7FA;
+  --color-surface: #FFFFFF;
+  --color-text-dark: #1A1F36;
+  --color-text-secondary: #6B7280;
+  --color-text-muted: #9CA3AF;
+  --color-border: #E5E7EB;
+  --color-success: #22C55E;
+  --color-success-light: #E8F5E9;
+  --color-danger: #EF4444;
+  --color-danger-light: #FDE8E8;
+  --color-warning: #F59E0B;
+  --color-warning-light: #FFF3E0;
+  --color-info-light: #E0F2FE;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-page-bg);
+    color: var(--color-text-dark);
+  }
+}
+
+@layer utilities {
+  /* Hides scrollbar but allows scrolling */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

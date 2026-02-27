@@ -1,0 +1,65 @@
+// src/components/ui/table.jsx
+import * as React from "react";
+
+export function Table({ className, ...props }) {
+  return (
+    <table
+      className={`w-full caption-bottom text-sm ${className || ""}`}
+      {...props}
+    />
+  );
+}
+
+export function TableHeader({ className, ...props }) {
+  return (
+    <thead
+      className={`[&_tr]:border-b ${className || ""}`}
+      {...props}
+    />
+  );
+}
+
+export function TableBody({ className, ...props }) {
+  return (
+    <tbody
+      className={`[&_tr:last-child]:border-0 ${className || ""}`}
+      {...props}
+    />
+  );
+}
+
+export function TableRow({ className, ...props }) {
+  return (
+    <tr
+      className={`border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted ${className || ""}`}
+      {...props}
+    />
+  );
+}
+
+export function TableHead({ className, ...props }) {
+  return (
+    <th
+      className={`h-10 px-2 text-left align-middle font-medium text-muted-foreground ${className || ""}`}
+      {...props}
+    />
+  );
+}
+
+export function TableCell({ className, ...props }) {
+  return (
+    <td
+      className={`p-2 align-middle ${className || ""}`}
+      {...props}
+    />
+  );
+}
+
+export function TableCaption({ className, ...props }) {
+  return (
+    <caption
+      className={`mt-4 text-sm text-muted-foreground ${className || ""}`}
+      {...props}
+    />
+  );
+}
