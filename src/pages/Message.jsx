@@ -4,6 +4,7 @@ import { socket } from "../socket";
 import { CKEditor } from "@ckeditor/ckeditor5-react";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
 import sanitizeHtml from "sanitize-html"; // optional: run-time client sanitize
+import { Search, Plus, Phone, Video, Info, MoreHorizontal, Paperclip, Smile, Send } from "lucide-react";
 
 export default function Message() {
   const [sessions, setSessions] = useState([]);
@@ -318,13 +319,13 @@ export default function Message() {
         : `/whatsapp/${sessionId}/send`;
 
       const payload = isGroup
-  ? { 
-      groupId: jid, 
+  ? {
+      groupId: jid,
       message: inputText,     // converted WhatsApp markup
       htmlMessage: inputHtml  // CKEditor HTML (ADD HERE)
     }
-  : { 
-      number: jid, 
+  : {
+      number: jid,
       message: inputText,     // converted WhatsApp markup
       htmlMessage: inputHtml  // CKEditor HTML (ADD HERE)
     };
@@ -422,310 +423,298 @@ export default function Message() {
 
   const formatContactName = (id) => id.replace(/@(s\.whatsapp\.net|g\.us)/, "");
 
+  const getInitials = (id) => {
+    const name = formatContactName(id);
+    if (!name) return "?";
+    const digits = name.replace(/\D/g, "");
+    if (digits.length > 4) return digits.slice(-2);
+    return name.slice(0, 2).toUpperCase();
+  };
+
+  const AVATAR_COLORS = [
+    "bg-blue-100 text-blue-600",
+    "bg-emerald-100 text-emerald-600",
+    "bg-amber-100 text-amber-600",
+    "bg-rose-100 text-rose-600",
+    "bg-purple-100 text-purple-600",
+    "bg-cyan-100 text-cyan-600",
+  ];
+
+  const getAvatarColor = (id) => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+  };
+
+  const STATUS_DOTS = ["bg-emerald-500", "bg-amber-400", "bg-rose-400"];
+  const getStatusDot = (id) => {
+    let hash = 0;
+    for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+    return STATUS_DOTS[Math.abs(hash) % STATUS_DOTS.length];
+  };
+
   /* ---------------- UI ---------------- */
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col shadow-sm">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-green-50 to-emerald-50">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">💬</span>
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-800">WhatsApp Web</h1>
-              <p className="text-sm text-gray-600">Send messages seamlessly</p>
-            </div>
+    <div className="flex h-full bg-page-bg p-4 gap-4">
+      {/* ============ SIDEBAR ============ */}
+      <div className="w-[360px] flex-shrink-0 bg-surface rounded-2xl border border-border flex flex-col overflow-hidden">
+        {/* Sidebar Header */}
+        <div className="px-5 pt-5 pb-4">
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-xl font-bold text-text-dark">Chats</h1>
+            <button className="w-8 h-8 rounded-full bg-page-bg border border-border flex items-center justify-center text-text-secondary hover:bg-primary hover:text-white hover:border-primary transition-colors">
+              <Plus className="w-4 h-4" />
+            </button>
           </div>
 
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700 flex items-center space-x-2">
-              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
-              <span>Active Session</span>
-            </label>
-            <select
-              value={sessionId}
-              onChange={(e) => setSessionId(e.target.value)}
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white shadow-sm"
-            >
-              <option value="">Select Session</option>
-              {sessions.map((s) => (
-                <option key={s.sessionId} value={s.sessionId}>
-                  {s.number} ({s.status})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="p-4 border-b border-gray-100">
+          {/* Search */}
           <div className="relative">
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-              🔍
-            </span>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
             <input
               type="text"
-              placeholder="Search or start new chat"
-              className="w-full bg-gray-100 border-none rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-green-500 focus:bg-white transition-all duration-200"
+              placeholder="Search conversations..."
+              className="w-full bg-page-bg border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm text-text-dark placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
             />
           </div>
         </div>
 
-        {/* Chats Header */}
-        <div className="px-6 py-4 border-b border-gray-100 bg-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-600">💭</span>
-              <h2 className="font-semibold text-lg text-gray-800">Chats</h2>
-            </div>
-            <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-1 rounded-full">
-              {chats.length}
-            </span>
-          </div>
+        {/* Session Selector (compact) */}
+        <div className="px-5 pb-3">
+          <select
+            value={sessionId}
+            onChange={(e) => setSessionId(e.target.value)}
+            className="w-full bg-page-bg border border-border rounded-lg px-3 py-2 text-sm text-text-dark focus:ring-2 focus:ring-primary/20 focus:border-primary transition-colors"
+          >
+            <option value="">Select Session</option>
+            {sessions.map((s) => (
+              <option key={s.sessionId} value={s.sessionId}>
+                {s.number} ({s.status})
+              </option>
+            ))}
+          </select>
         </div>
 
+        {/* Divider */}
+        <div className="border-t border-border" />
+
         {/* Chat List */}
-        <div className="flex-1 overflow-y-auto bg-gray-50">
+        <div className="flex-1 overflow-y-auto">
           {chats.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400 p-6">
-              <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-3">
+            <div className="flex flex-col items-center justify-center h-full text-text-muted p-6">
+              <div className="w-14 h-14 bg-page-bg rounded-full flex items-center justify-center mb-3 border border-border">
                 <span className="text-2xl">💬</span>
               </div>
-              <p className="text-center text-sm">No chats yet</p>
-              <p className="text-center text-xs mt-1">
-                Start a conversation to see it here
-              </p>
+              <p className="text-sm font-medium">No chats yet</p>
+              <p className="text-xs mt-1">Start a conversation to see it here</p>
             </div>
           ) : (
-            chats.map((chat) => (
-              <div
-                key={chat.recipient}
-                onClick={() => setActiveChat(chat.recipient)}
-                className={`p-4 border-b border-gray-100 cursor-pointer transition-all duration-200 hover:bg-white group ${
-                  activeChat === chat.recipient
-                    ? "bg-green-50 border-l-4 border-l-green-500"
-                    : "bg-white"
-                }`}
-              >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3 min-w-0 flex-1">
-                    <div
-                      className={`flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center ${
-                        chat.recipient.endsWith("@g.us")
-                          ? "bg-purple-100 text-purple-600"
-                          : "bg-green-100 text-green-600"
-                      }`}
-                    >
-                      {chat.recipient.endsWith("@g.us") ? (
-                        <span className="text-lg">👥</span>
+            chats.map((chat) => {
+              const isActive = activeChat === chat.recipient;
+              const isGroup = chat.recipient.endsWith("@g.us");
+              return (
+                <div
+                  key={chat.recipient}
+                  onClick={() => setActiveChat(chat.recipient)}
+                  className={`flex items-center gap-3 px-5 py-3.5 cursor-pointer transition-colors border-l-3 ${
+                    isActive
+                      ? "bg-primary/5 border-l-primary"
+                      : "border-l-transparent hover:bg-page-bg"
+                  }`}
+                >
+                  {/* Avatar */}
+                  <div className="relative flex-shrink-0">
+                    <div className={`w-11 h-11 rounded-full flex items-center justify-center text-sm font-semibold ${
+                      isGroup ? "bg-primary/10 text-primary" : getAvatarColor(chat.recipient)
+                    }`}>
+                      {isGroup ? (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
                       ) : (
-                        <span className="text-lg">👤</span>
+                        getInitials(chat.recipient)
                       )}
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-semibold text-gray-900 text-sm truncate flex items-center gap-2">
-                          {formatContactName(chat.recipient)}
-                          {chat.recipient.endsWith("@g.us") && (
-                            <span className="bg-purple-100 text-purple-700 text-xs px-2 py-0.5 rounded-full font-medium">
-                              Group
-                            </span>
-                          )}
-                        </h4>
-                        <span className="text-xs text-gray-500 font-medium flex-shrink-0 ml-2">
-                          {chat.time}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600 truncate">
-                        {chat.lastMessage || "No messages yet"}
-                      </p>
+                    <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-surface ${getStatusDot(chat.recipient)}`} />
+                  </div>
+
+                  {/* Info */}
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between mb-0.5">
+                      <h4 className={`text-sm font-semibold truncate ${isActive ? "text-primary" : "text-text-dark"}`}>
+                        {formatContactName(chat.recipient)}
+                      </h4>
+                      <span className="text-[11px] text-text-muted flex-shrink-0 ml-2">{chat.time}</span>
                     </div>
+                    <p className="text-xs text-text-secondary truncate">
+                      {chat.lastMessage || "No messages yet"}
+                    </p>
                   </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
 
-      {/* Chat Window with WhatsApp-like Light Pattern Background */}
-      <div className="flex-1 flex flex-col bg-white">
+      {/* ============ CHAT AREA ============ */}
+      <div className="flex-1 bg-surface rounded-2xl border border-border flex flex-col overflow-hidden">
         {!activeChat ? (
-          <div
-            className="flex-1 flex flex-col items-center justify-center bg-[#efeae2] text-gray-400 p-8"
-            style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-              backgroundAttachment: "fixed",
-            }}
-          >
-            <div className="w-24 h-24 bg-white/80 rounded-full flex items-center justify-center mb-6 shadow-lg backdrop-blur-sm">
-              <span className="text-4xl">💬</span>
+          /* Empty state */
+          <div className="flex-1 flex flex-col items-center justify-center bg-page-bg text-text-muted p-8">
+            <div className="w-20 h-20 bg-surface rounded-full flex items-center justify-center mb-5 shadow-sm border border-border">
+              <span className="text-3xl">💬</span>
             </div>
-            <h3 className="text-xl font-medium text-gray-500 mb-2">
-              Welcome to WhatsApp Web
-            </h3>
-            <p className="text-sm text-center max-w-md">
-              Select a chat from the sidebar to start messaging or create a new
-              conversation.
+            <h3 className="text-lg font-semibold text-text-dark mb-1">Welcome to Chats</h3>
+            <p className="text-sm text-text-secondary text-center max-w-sm">
+              Select a conversation from the sidebar to start messaging
             </p>
           </div>
         ) : (
           <>
             {/* Chat Header */}
-            <div className="bg-[#f0f2f5] border-b border-gray-300 px-4 py-3">
+            <div className="bg-surface border-b border-border px-5 py-3.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  <div
-                    className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                      activeChat.endsWith("@g.us")
-                        ? "bg-purple-100 text-purple-600"
-                        : "bg-green-100 text-green-600"
-                    }`}
-                  >
-                    {activeChat.endsWith("@g.us") ? (
-                      <span className="text-xl">👥</span>
-                    ) : (
-                      <span className="text-xl">👤</span>
-                    )}
-                  </div>
-                  <div className="flex flex-col">
-                    <h3 className="font-semibold text-gray-900 text-lg">
-                      {activeChat.endsWith("@g.us")
-                        ? `${activeChat.replace("@g.us", "")}`
-                        : activeChat.replace("@s.whatsapp.net", "")}
-                    </h3>
-                    <div className="flex items-center space-x-2">
-                      {contactTyping && (
-                        <p className="text-sm text-green-600 font-medium flex items-center">
-                          <span className="flex space-x-1 mr-2">
-                            <span className="w-1 h-1 bg-green-600 rounded-full animate-bounce"></span>
-                            <span
-                              className="w-1 h-1 bg-green-600 rounded-full animate-bounce"
-                              style={{ animationDelay: "0.1s" }}
-                            ></span>
-                            <span
-                              className="w-1 h-1 bg-green-600 rounded-full animate-bounce"
-                              style={{ animationDelay: "0.2s" }}
-                            ></span>
-                          </span>
-                          Typing...
-                        </p>
+                <div className="flex items-center gap-3">
+                  {/* Avatar */}
+                  <div className="relative">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
+                      activeChat.endsWith("@g.us") ? "bg-primary/10 text-primary" : getAvatarColor(activeChat)
+                    }`}>
+                      {activeChat.endsWith("@g.us") ? (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                      ) : (
+                        getInitials(activeChat)
                       )}
                     </div>
+                    <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-surface" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold text-text-dark">
+                      {activeChat.endsWith("@g.us")
+                        ? activeChat.replace("@g.us", "")
+                        : activeChat.replace("@s.whatsapp.net", "")}
+                    </h3>
+                    {contactTyping ? (
+                      <p className="text-xs text-primary font-medium flex items-center gap-1">
+                        <span className="flex gap-0.5">
+                          <span className="w-1 h-1 bg-primary rounded-full animate-bounce" />
+                          <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
+                          <span className="w-1 h-1 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
+                        </span>
+                        Typing...
+                      </p>
+                    ) : (
+                      <p className="text-xs text-emerald-500 font-medium">Online</p>
+                    )}
                   </div>
                 </div>
-                <div className="flex items-center space-x-6 text-gray-500">
-                  <button className="hover:text-gray-700 transition-colors p-2">
-                    <span className="text-xl">🔍</span>
+                <div className="flex items-center gap-1">
+                  <button className="w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary hover:bg-page-bg transition-colors">
+                    <Phone className="w-[18px] h-[18px]" />
                   </button>
-                  <button className="hover:text-gray-700 transition-colors p-2">
-                    <span className="text-xl">⋮</span>
+                  <button className="w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary hover:bg-page-bg transition-colors">
+                    <Video className="w-[18px] h-[18px]" />
+                  </button>
+                  <button className="w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary hover:bg-page-bg transition-colors">
+                    <Info className="w-[18px] h-[18px]" />
+                  </button>
+                  <button className="w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary hover:bg-page-bg transition-colors">
+                    <MoreHorizontal className="w-[18px] h-[18px]" />
                   </button>
                 </div>
               </div>
             </div>
 
-            {/* Messages Area with WhatsApp Pattern Background */}
-            <div
-              className="flex-1 overflow-y-auto p-4"
-              style={{
-                backgroundColor: "#efeae2",
-                backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%239C92AC' fill-opacity='0.03' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-                backgroundAttachment: "fixed",
-              }}
-            >
+            {/* Messages Area */}
+            <div className="flex-1 overflow-y-auto p-5 bg-page-bg">
               {messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-gray-400">
-                  <div className="w-20 h-20 bg-white/80 rounded-full flex items-center justify-center mb-4 shadow-lg backdrop-blur-sm">
-                    <span className="text-3xl">💬</span>
+                <div className="flex flex-col items-center justify-center h-full text-text-muted">
+                  <div className="w-16 h-16 bg-surface rounded-full flex items-center justify-center mb-3 border border-border">
+                    <span className="text-2xl">💬</span>
                   </div>
                   <p className="text-sm font-medium">No messages yet</p>
-                  <p className="text-xs mt-1">
-                    Send a message to start the conversation
-                  </p>
+                  <p className="text-xs mt-1">Send a message to start the conversation</p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {messages.map((msg, idx) => (
-                    <div
-                      key={msg._id || msg.messageId || idx}
-                      className={`flex ${
-                        msg.direction === "out"
-                          ? "justify-end"
-                          : "justify-start"
-                      }`}
-                    >
+                <div className="space-y-3">
+                  {messages.map((msg, idx) => {
+                    const isOut = msg.direction === "out";
+                    return (
                       <div
-                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-2xl relative group ${
-                          msg.direction === "out"
-                            ? "bg-[#d9fdd3] rounded-br-none shadow-sm"
-                            : "bg-white rounded-bl-none shadow-sm"
-                        }`}
-                        style={{
-                          boxShadow: "0 1px 2px rgba(0, 0, 0, 0.1)",
-                        }}
+                        key={msg._id || msg.messageId || idx}
+                        className={`flex items-end gap-2 ${isOut ? "justify-end" : "justify-start"}`}
                       >
-                        {/* Sender name for group messages */}
-                        {msg.isGroup && msg.direction === "in" && (
-                          <div className="font-semibold text-green-700 text-xs mb-1">
-                            {msg.senderName || msg.sender?.split("@")[0]}
+                        {/* Incoming avatar */}
+                        {!isOut && (
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0 ${getAvatarColor(msg.sender || activeChat)}`}>
+                            {getInitials(msg.sender || activeChat)}
                           </div>
                         )}
 
-                        {/* Message content */}
-                        {msg.contentHtml ? (
+                        <div className={`max-w-xs lg:max-w-md ${isOut ? "items-end" : "items-start"}`}>
                           <div
-                            className="text-sm break-words leading-relaxed"
-                            dangerouslySetInnerHTML={{
-                              __html: msg.contentHtml,
-                            }}
-                          />
-                        ) : (
-                          <div className="text-sm text-gray-800 break-words leading-relaxed">
-                            {msg.content || msg.contentText}
-                          </div>
-                        )}
+                            className={`px-4 py-2.5 ${
+                              isOut
+                                ? "bg-primary text-white rounded-2xl rounded-br-sm"
+                                : "bg-surface text-text-dark rounded-2xl rounded-bl-sm border border-border"
+                            }`}
+                            style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.06)" }}
+                          >
+                            {/* Sender name for group messages */}
+                            {msg.isGroup && msg.direction === "in" && (
+                              <div className="font-semibold text-primary text-xs mb-1">
+                                {msg.senderName || msg.sender?.split("@")[0]}
+                              </div>
+                            )}
 
-                        {/* Message timestamp and status */}
-                        <div
-                          className={`flex items-center justify-end space-x-1 mt-1 ${
-                            msg.direction === "out"
-                              ? "text-gray-500"
-                              : "text-gray-400"
-                          }`}
-                        >
-                          <span className="text-xs font-medium">
-                            {formatTime(msg.createdAt)}
-                          </span>
-                          {msg.direction === "out" && (
-                            <span className="text-xs ml-1">
-                              {getStatus(msg.status)}
+                            {/* Message content */}
+                            {msg.contentHtml ? (
+                              <div
+                                className="text-sm break-words leading-relaxed"
+                                dangerouslySetInnerHTML={{
+                                  __html: msg.contentHtml,
+                                }}
+                              />
+                            ) : (
+                              <div className="text-sm break-words leading-relaxed">
+                                {msg.content || msg.contentText}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Timestamp + status below bubble */}
+                          <div className={`flex items-center gap-1 mt-1 px-1 ${isOut ? "justify-end" : "justify-start"}`}>
+                            <span className="text-[11px] text-text-muted">
+                              {formatTime(msg.createdAt)}
                             </span>
-                          )}
+                            {isOut && (
+                              <span className="text-[11px]">
+                                {getStatus(msg.status)}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   <div ref={scrollRef} />
                 </div>
               )}
             </div>
 
             {/* Message Input */}
-            <div className="bg-[#f0f2f5] border-t border-gray-300 p-3">
-              <div className="flex items-center space-x-2 max-w-6xl mx-auto">
-                <div className="flex items-center space-x-1">
-                  <button className="text-gray-500 hover:text-gray-700 transition-colors p-3 rounded-full hover:bg-gray-300">
-                    📎
-                  </button>
-                  <button className="text-gray-500 hover:text-gray-700 transition-colors p-3 rounded-full hover:bg-gray-300">
-                    😊
-                  </button>
-                </div>
+            <div className="bg-surface border-t border-border px-5 py-3">
+              <div className="flex items-center gap-2">
+                <button className="w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary hover:bg-page-bg transition-colors">
+                  <Paperclip className="w-[18px] h-[18px]" />
+                </button>
+                <button className="w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary hover:bg-page-bg transition-colors">
+                  <Smile className="w-[18px] h-[18px]" />
+                </button>
 
-                <div className="flex-1 bg-white rounded-3xl px-2 py-2 border border-gray-300">
+                <div className="flex-1 bg-page-bg rounded-xl px-2 py-1.5 border border-border focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/10 transition-all [&_.ck-editor]:border-0 [&_.ck-toolbar]:bg-transparent [&_.ck-toolbar]:border-0 [&_.ck-toolbar]:p-0 [&_.ck-content]:bg-transparent [&_.ck-content]:border-0 [&_.ck-content]:shadow-none [&_.ck-content]:min-h-[28px] [&_.ck-content]:p-0 [&_.ck-content]:text-sm [&_.ck.ck-editor]:shadow-none [&_.ck-focused]:shadow-none [&_.ck-focused]:border-0 [&_.ck.ck-reset]:text-text-dark">
                   <CKEditor
                     editor={ClassicEditor}
                     data={inputHtml}
@@ -751,19 +740,21 @@ export default function Message() {
                   />
                 </div>
 
-                <div className="flex items-center space-x-1">
-                  <button
-                    onClick={() => sendMessageWithHtml()}
-                    disabled={!inputText.trim() && !inputHtml.trim()}
-                    className={`p-3 rounded-full ${
-                      inputText.trim()
-                        ? "bg-green-500 text-white"
-                        : "bg-gray-300 text-gray-400"
-                    }`}
-                  >
-                    ➤
-                  </button>
-                </div>
+                <button className="w-9 h-9 rounded-lg flex items-center justify-center text-text-secondary hover:bg-page-bg transition-colors">
+                  <Smile className="w-[18px] h-[18px]" />
+                </button>
+
+                <button
+                  onClick={() => sendMessageWithHtml()}
+                  disabled={!inputText.trim() && !inputHtml.trim()}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${
+                    inputText.trim() || inputHtml.trim()
+                      ? "bg-primary text-white hover:bg-primary-hover shadow-sm"
+                      : "bg-border text-text-muted"
+                  }`}
+                >
+                  <Send className="w-[18px] h-[18px]" />
+                </button>
               </div>
             </div>
           </>
